@@ -19,4 +19,42 @@ router.get('/', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/events/:id
+ * 根据ID获取单个活动
+ */
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 验证ID是否为数字
+    if (isNaN(parseInt(id))) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid event ID. ID must be a number.',
+      });
+    }
+
+    const [rows] = await pool.query('SELECT * FROM events WHERE id = ?', [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Event not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: rows[0],
+    });
+  } catch (err) {
+    console.error('Error fetching event by ID:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Server Error while fetching event',
+    });
+  }
+});
+
 export default router;
