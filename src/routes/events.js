@@ -57,4 +57,45 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// GET /api/events/:id/remaining
+router.get('/:id/remaining', async (req, res) => {
+  try {
+    const eventId = req.params.id;
+
+    // capacity 取得
+    const [[eventInfo]] = await pool.query(
+      `SELECT capacity FROM events WHERE id = ? LIMIT 1`,
+      [eventId],
+    );
+
+    if (!eventInfo) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'イベントが存在しません' });
+    }
+
+    const capacity = Number(eventInfo.capacity);
+
+    // 現在の予約人数
+    const [[count]] = await pool.query(
+      `SELECT COALESCE(SUM(guest_count), 0) AS total
+       FROM reservations
+       WHERE event_id = ? AND status != 'cancelled'`,
+      [eventId],
+    );
+
+    const reserved = Number(count.total);
+
+    return res.json({
+      success: true,
+      capacity,
+      reserved,
+      remaining: Math.max(0, capacity - reserved),
+    });
+  } catch (err) {
+    console.error('getRemainingSpots API Error:', err);
+    return res.status(500).json({ success: false, message: 'サーバーエラー' });
+  }
+});
+
 export default router;

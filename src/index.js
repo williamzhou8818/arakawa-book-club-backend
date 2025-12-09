@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import eventsRoute from './routes/events.js';
+import reservationsRoute from './routes/reservations.js';
+
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -15,6 +17,7 @@ app.get('/', (req, res) => {
 
 // 挂载 routes
 app.use('/api/events', eventsRoute);
+app.use('/api/reservations', reservationsRoute);
 
 // 使用 .env 中的 PORT，否则默认 3001
 const PORT = process.env.PORT || 3001;
